@@ -91,7 +91,7 @@ pub fn code_block<'t>(
     ui: &mut Ui,
     max_width: f32,
     text: &str,
-    layouter: &'t mut dyn FnMut(&Ui, &str, f32) -> std::sync::Arc<egui::Galley>,
+    layouter: &'t mut dyn FnMut(&Ui, &dyn egui::TextBuffer, f32) -> std::sync::Arc<egui::Galley>,
 ) {
     let mut text = text.strip_suffix('\n').unwrap_or(text);
 
