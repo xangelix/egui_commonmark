@@ -207,7 +207,7 @@ impl Link {
             );
         }
         if cache.link_hooks().contains_key(&destination) {
-            let ui_link = ui.link(layout_job);
+            let ui_link = ui.link(layout_job).on_hover_text(&destination);
             if ui_link.clicked() || ui_link.middle_clicked() {
                 cache.link_hooks_mut().insert(destination, true);
             }
