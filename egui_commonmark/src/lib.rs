@@ -76,10 +76,10 @@ use egui::{self, Id};
 
 mod parsers;
 
-pub use egui_commonmark_backend::alerts::{Alert, AlertBundle};
-pub use egui_commonmark_backend::misc::CommonMarkCache;
 pub use egui_commonmark_backend::RenderHtmlFn;
 pub use egui_commonmark_backend::RenderMathFn;
+pub use egui_commonmark_backend::alerts::{Alert, AlertBundle};
+pub use egui_commonmark_backend::misc::CommonMarkCache;
 
 #[cfg(feature = "macros")]
 pub use egui_commonmark_macros::*;
@@ -254,13 +254,14 @@ impl<'f> CommonMarkViewer<'f> {
         self.options.mutable = true;
         egui_commonmark_backend::prepare_show(cache, ui.ctx());
 
-        let (response, checkmark_events) = parsers::pulldown::CommonMarkViewerInternal::new().show(
-            ui,
-            cache,
-            &self.options,
-            text,
-            None,
-        );
+        let (mut inner_response, checkmark_events) =
+            parsers::pulldown::CommonMarkViewerInternal::new().show(
+                ui,
+                cache,
+                &self.options,
+                text,
+                None,
+            );
 
         // Update source text for checkmarks that were clicked
         for ev in checkmark_events {
@@ -269,9 +270,11 @@ impl<'f> CommonMarkViewer<'f> {
             } else {
                 text.replace_range(ev.span, "[ ]")
             }
+
+            inner_response.response.mark_changed();
         }
 
-        response
+        inner_response
     }
 
     /// Shows markdown inside a [`ScrollArea`].

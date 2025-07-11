@@ -1,5 +1,5 @@
 use crate::alerts::AlertBundle;
-use egui::{text::LayoutJob, RichText, TextStyle, Ui};
+use egui::{RichText, TextBuffer, TextStyle, Ui, text::LayoutJob};
 use std::collections::HashMap;
 
 use crate::pulldown::ScrollableCache;
@@ -35,7 +35,7 @@ pub struct CommonMarkOptions<'f> {
     pub html_fn: Option<&'f crate::RenderHtmlFn>,
 }
 
-impl<'f> std::fmt::Debug for CommonMarkOptions<'f> {
+impl std::fmt::Debug for CommonMarkOptions<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut s = f.debug_struct("CommonMarkOptions");
 
@@ -272,11 +272,11 @@ impl CodeBlock {
         ui.scope(|ui| {
             Self::pre_syntax_highlighting(cache, options, ui);
 
-            let mut layout = |ui: &Ui, string: &str, wrap_width: f32| {
+            let mut layout = |ui: &Ui, string: &dyn TextBuffer, wrap_width: f32| {
                 let mut job = if let Some(lang) = &self.lang {
-                    self.syntax_highlighting(cache, options, lang, ui, string)
+                    self.syntax_highlighting(cache, options, lang, ui, string.as_str())
                 } else {
-                    plain_highlighting(ui, string)
+                    plain_highlighting(ui, string.as_str())
                 };
 
                 job.wrap.max_width = wrap_width;

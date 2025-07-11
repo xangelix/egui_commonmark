@@ -1,15 +1,28 @@
-# egui_commomnark changelog
+# egui_commonmark changelog
 
 ## Unreleased
+
+
+### Fixed
+
+- Loose lists would get a newline between the bullet point and the text when it
+  is the first markdown element.
+
+## 0.21.0 - 2025-07-10
 
 ### Changed
 
 - Updated to pulldown-cmark 0.13
+- Updated egui to 0.32 ([#76](https://github.com/lampsitter/egui_commonmark/pull/76) by
+  [@lucasmerlin](https://github.com/lucasmerlin))
 
 
 ### Fixed
 
 - Rendering of html in macros
+- Mark response as changed when clicking a checkbox using `show_mut`
+  ([#75](https://github.com/lampsitter/egui_commonmark/pull/75) by
+  [nacl42](https://github.com/nacl42))
 
 ## 0.20.0 - 2025-02-04
 
@@ -52,7 +65,7 @@
 
 - Updated pulldown-cmark to 0.12
 - Newlines are no longer inserted before/after markdown ([#56](https://github.com/lampsitter/egui_commonmark/pull/56))
-    > For the old behaviour you can call `ui.label("");` before and and after
+    > For the old behaviour you can call `ui.label("");` before and after
 
 ### Removed
 

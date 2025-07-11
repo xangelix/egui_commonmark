@@ -13,7 +13,7 @@ Github's markdown syntax: tables, strikethrough, tasklists and footnotes.
 In Cargo.toml:
 
 ```toml
-egui_commonmark = "0.20"
+egui_commonmark = "0.21"
 # Specify what image formats you want to use
 image = { version = "0.25", default-features = false, features = ["png"] }
 ```
@@ -63,6 +63,7 @@ commonmark_str!(ui, &mut cache, "content.md");
   [`syntect`](https://crates.io/crates/syntect)
 * `svg`: Support for viewing svg images
 * `fetch`: Images with urls will be downloaded and displayed
+* `embedded_image`: Load base64 image data urls from within markdown files
 
 
 ## Examples
