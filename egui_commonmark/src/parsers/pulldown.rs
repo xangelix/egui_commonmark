@@ -517,22 +517,21 @@ impl CommonMarkViewerInternal {
             pulldown_cmark::Event::Start(tag) => self.start_tag(ui, tag, options),
             pulldown_cmark::Event::End(tag) => self.end_tag(ui, tag, cache, options, max_width),
             pulldown_cmark::Event::Text(text) => {
-                self.event_text(text, ui);
+                self.event_text(text, ui, options);
             }
             pulldown_cmark::Event::Code(text) => {
                 self.text_style.code = true;
-                self.event_text(text, ui);
+                self.event_text(text, ui, options);
                 self.text_style.code = false;
             }
             pulldown_cmark::Event::InlineHtml(text) => {
-                self.event_text(text, ui);
+                self.event_text(text, ui, options);
             }
-
             pulldown_cmark::Event::Html(text) => {
                 if options.html_fn.is_some() {
                     self.html_block.push_str(&text);
                 } else {
-                    self.event_text(text, ui);
+                    self.event_text(text, ui, options);
                 }
             }
             pulldown_cmark::Event::FootnoteReference(footnote) => {
@@ -574,16 +573,57 @@ impl CommonMarkViewerInternal {
         }
     }
 
-    fn event_text(&mut self, text: CowStr, ui: &mut Ui) {
-        let rich_text = self.text_style.to_richtext(ui, &text);
+    fn event_text(&mut self, text: CowStr, ui: &mut Ui, options: &CommonMarkOptions) {
         if let Some(image) = &mut self.image {
-            image.alt_text.push(rich_text);
+            image.alt_text.push(self.text_style.to_richtext(ui, &text));
         } else if let Some(block) = &mut self.code_block {
             block.content.push_str(&text);
         } else if let Some(link) = &mut self.link {
-            link.text.push(rich_text);
+            link.text.push(self.text_style.to_richtext(ui, &text));
         } else {
-            ui.label(rich_text);
+            // If we have custom formats, we try to match them against the text
+            if let Some(formats) = options.custom_formats {
+                let mut current_text = text.as_ref();
+
+                while !current_text.is_empty() {
+                    let mut earliest_match = None;
+                    let mut earliest_start = usize::MAX;
+
+                    // Find the earliest match among all provided formats
+                    for format in formats {
+                        if let Some(m) = format.regex.find(current_text) {
+                            if m.start() < earliest_start {
+                                earliest_start = m.start();
+                                earliest_match = Some((m, format));
+                            }
+                        }
+                    }
+
+                    if let Some((m, format)) = earliest_match {
+                        // Render any preceding text that didn't match
+                        if m.start() > 0 {
+                            let prefix = &current_text[..m.start()];
+                            let rich_text = self.text_style.to_richtext(ui, prefix);
+                            ui.label(rich_text);
+                        }
+
+                        // Render the custom widget using the user's callback
+                        (format.callback)(ui, m.as_str());
+
+                        // Advance the cursor past the match
+                        current_text = &current_text[m.end()..];
+                    } else {
+                        // No more matches, render the remainder of the text normally
+                        let rich_text = self.text_style.to_richtext(ui, current_text);
+                        ui.label(rich_text);
+                        break;
+                    }
+                }
+            } else {
+                // Standard rendering
+                let rich_text = self.text_style.to_richtext(ui, &text);
+                ui.label(rich_text);
+            }
         }
     }
 

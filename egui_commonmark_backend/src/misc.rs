@@ -17,6 +17,11 @@ const DEFAULT_THEME_LIGHT: &str = "base16-ocean.light";
 #[cfg(feature = "better_syntax_highlighting")]
 const DEFAULT_THEME_DARK: &str = "base16-ocean.dark";
 
+pub struct CustomFormat<'f> {
+    pub regex: regex::Regex,
+    pub callback: &'f dyn Fn(&mut egui::Ui, &str),
+}
+
 pub struct CommonMarkOptions<'f> {
     pub indentation_spaces: usize,
     pub max_image_width: Option<usize>,
@@ -33,6 +38,8 @@ pub struct CommonMarkOptions<'f> {
     pub mutable: bool,
     pub math_fn: Option<&'f crate::RenderMathFn>,
     pub html_fn: Option<&'f crate::RenderHtmlFn>,
+
+    pub custom_formats: Option<&'f [CustomFormat<'f>]>,
 }
 
 impl std::fmt::Debug for CommonMarkOptions<'_> {
@@ -76,6 +83,7 @@ impl Default for CommonMarkOptions<'_> {
             mutable: false,
             math_fn: None,
             html_fn: None,
+            custom_formats: None,
         }
     }
 }

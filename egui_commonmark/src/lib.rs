@@ -79,7 +79,7 @@ mod parsers;
 pub use egui_commonmark_backend::RenderHtmlFn;
 pub use egui_commonmark_backend::RenderMathFn;
 pub use egui_commonmark_backend::alerts::{Alert, AlertBundle};
-pub use egui_commonmark_backend::misc::CommonMarkCache;
+pub use egui_commonmark_backend::misc::{CommonMarkCache, CustomFormat};
 
 #[cfg(feature = "better_syntax_highlighting")]
 pub use egui_commonmark_backend::syntect;
@@ -173,6 +173,13 @@ impl<'f> CommonMarkViewer<'f> {
     /// are used
     pub fn alerts(mut self, alerts: AlertBundle) -> Self {
         self.options.alerts = alerts;
+        self
+    }
+
+    /// Adds arbitrary formatting definitions. Any text that matches the regex
+    /// will trigger the custom UI callback instead of standard text rendering.
+    pub fn custom_formats(mut self, formats: &'f [CustomFormat<'f>]) -> Self {
+        self.options.custom_formats = Some(formats);
         self
     }
 

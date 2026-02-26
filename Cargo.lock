@@ -622,6 +622,7 @@ dependencies = [
  "egui_extras",
  "image",
  "pulldown-cmark",
+ "regex",
 ]
 
 [[package]]
@@ -632,6 +633,7 @@ dependencies = [
  "egui",
  "egui_extras",
  "pulldown-cmark",
+ "regex",
  "syntect",
 ]
 
