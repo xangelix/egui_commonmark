@@ -72,23 +72,9 @@ fn main() -> eframe::Result {
     )
 }
 
-const EXAMPLE_TEXT: &str = r#"
-# Server Status Logs
+const EXAMPLE_TEXT: &str = r"
+# Server Logs
 
-The main database server at 192.168.1.15 is currently accepting connections. 
-However, we are seeing dropped packets from the subnet router located at 10.0.0.1.
-
-Please ensure that you do not block 172.16.254.1, as that is our internal DNS.
-
-### Configuration
-
-Ensure your local config does not bind to the loopback unless necessary:
-
-```rust
-// The custom formatting regex will NOT trigger inside this code block!
-let localhost = "127.0.0.1";
-println!("Binding to {}", localhost);
-```
-
-Check the logs for any unauthorized access attempts from 198.51.100.23!
-"#;
+Database at 192.168.1.15 is dropping packets. This seems related to #4012. 
+Please ensure you do not block 172.16.254.1 as per issue #3990.
+";
