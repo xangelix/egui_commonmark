@@ -1,72 +1,53 @@
-use eframe::egui;
-use egui_commonmark::*;
-use regex::{Regex, RegexSet};
+use egui_commonmark::{
+    CommonMarkCache, CommonMarkViewer, CustomFormatCallback, CustomFormatGroup, CustomFormatMatcher,
+};
 
 struct App {
     cache: CommonMarkCache,
-    format_set: RegexSet,
-    ip_regex: Regex,
-    issue_regex: Regex,
+    format_matcher: CustomFormatMatcher,
 }
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            egui::ScrollArea::vertical().show(ui, |ui| {
-                // Construct the rules. Order MATTERS here.
-                // Index 0 must be the IP regex, Index 1 must be the Issue regex.
-                let formats = [
-                    CustomFormat {
-                        regex: &self.ip_regex,
-                        callback: &|ui, match_str| {
-                            if ui.button(format!("📋 {match_str}")).clicked() {
-                                ui.ctx().copy_text(match_str.to_string());
-                            }
-                        },
-                    },
-                    CustomFormat {
-                        regex: &self.issue_regex,
-                        callback: &|ui, match_str| {
-                            if ui.link(match_str).clicked() {
-                                println!("Navigating to {match_str}...");
-                            }
-                        },
-                    },
-                ];
+            let callbacks: [&CustomFormatCallback; 2] = [
+                &|ui, match_str| {
+                    if ui.button(format!("📋 {match_str}")).clicked() {
+                        ui.ctx().copy_text(match_str.to_string());
+                    }
+                },
+                &|ui, match_str| {
+                    if ui.link(match_str).clicked() {
+                        println!("Clicked issue: {match_str}");
+                    }
+                },
+            ];
 
-                let group = CustomFormatGroup {
-                    set: &self.format_set,
-                    rules: &formats,
-                };
+            let group = CustomFormatGroup {
+                matcher: &self.format_matcher,
+                callbacks: &callbacks,
+            };
 
-                CommonMarkViewer::new().custom_formats(group).show(
-                    ui,
-                    &mut self.cache,
-                    EXAMPLE_TEXT,
-                );
-            });
+            CommonMarkViewer::new()
+                .custom_formats(group)
+                .show(ui, &mut self.cache, EXAMPLE_TEXT);
         });
     }
 }
 
 fn main() -> eframe::Result {
     eframe::run_native(
-        "RegexSet Formatting Viewer",
+        "Regex Formatting Viewer",
         eframe::NativeOptions::default(),
         Box::new(move |_cc| {
-            // 1. Define patterns
-            let patterns = [
-                r"\b\d{1,3}(?:\.\d{1,3}){3}\b", // Index 0: IP address
-                r"#\d+",                        // Index 1: Issue number
-            ];
-
             Ok(Box::new(App {
                 cache: CommonMarkCache::default(),
-                // 2. Compile Set
-                format_set: RegexSet::new(patterns).unwrap(),
-                // 3. Compile individual Regexes mapping to the exact same indices
-                ip_regex: Regex::new(patterns[0]).unwrap(),
-                issue_regex: Regex::new(patterns[1]).unwrap(),
+
+                format_matcher: CustomFormatMatcher::new(&[
+                    r"\b\d{1,3}(?:\.\d{1,3}){3}\b", // Index 0: IP address
+                    r"#\d+",                        // Index 1: Issue number
+                ])
+                .unwrap(),
             }))
         }),
     )

@@ -21,7 +21,8 @@ pub use {
     // Pretty much every single element in this module is used by the proc macros
     elements::*,
     misc::{
-        CodeBlock, CommonMarkOptions, CustomFormat, CustomFormatGroup, Image, Link, prepare_show,
+        CodeBlock, CommonMarkOptions, CustomFormat, CustomFormatCallback, CustomFormatGroup,
+        CustomFormatMatcher, Image, Link, prepare_show,
     },
 };
 

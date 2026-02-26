@@ -575,17 +575,16 @@ impl CommonMarkViewerInternal {
 
     fn event_text(&mut self, text: &CowStr, ui: &mut Ui, options: &CommonMarkOptions) {
         if let Some(image) = &mut self.image {
-            image.alt_text.push(self.text_style.to_richtext(ui, &text));
+            image.alt_text.push(self.text_style.to_richtext(ui, text));
         } else if let Some(block) = &mut self.code_block {
-            block.content.push_str(&text);
+            block.content.push_str(text);
         } else if let Some(link) = &mut self.link {
-            link.text.push(self.text_style.to_richtext(ui, &text));
+            link.text.push(self.text_style.to_richtext(ui, text));
         } else if let Some(format_group) = &options.custom_formats {
             let mut current_text = text.as_ref();
 
             while !current_text.is_empty() {
-                // Quick check: does this text contain ANY of our patterns?
-                let matches = format_group.set.matches(current_text);
+                let matches = format_group.matcher.set.matches(current_text);
 
                 if !matches.matched_any() {
                     // No matches at all, render the rest of the text normally
@@ -597,41 +596,39 @@ impl CommonMarkViewerInternal {
                 let mut earliest_match = None;
                 let mut earliest_start = usize::MAX;
 
-                // Only evaluate the specific regexes that we KNOW matched the text
+                // Iterate over the indices of the rules that matched
                 for index in matches {
-                    if let Some(rule) = format_group.rules.get(index) {
-                        if let Some(m) = rule.regex.find(current_text) {
+                    if let Some(regex) = format_group.matcher.regexes.get(index) {
+                        if let Some(m) = regex.find(current_text) {
                             if m.start() < earliest_start {
                                 earliest_start = m.start();
-                                earliest_match = Some((m, rule));
+                                earliest_match = Some((m, index)); // Save the match and its index
                             }
                         }
                     }
                 }
 
-                if let Some((m, rule)) = earliest_match {
-                    // Render preceding text
+                if let Some((m, index)) = earliest_match {
                     if m.start() > 0 {
                         let prefix = &current_text[..m.start()];
                         let rich_text = self.text_style.to_richtext(ui, prefix);
                         ui.label(rich_text);
                     }
 
-                    // Render custom widget
-                    (rule.callback)(ui, m.as_str());
+                    // Execute the corresponding callback safely
+                    if let Some(callback) = format_group.callbacks.get(index) {
+                        callback(ui, m.as_str());
+                    }
 
-                    // Advance cursor past the match
                     current_text = &current_text[m.end()..];
                 } else {
-                    // Fallback (should be unreachable if matched_any() was true)
                     let rich_text = self.text_style.to_richtext(ui, current_text);
                     ui.label(rich_text);
                     break;
                 }
             }
         } else {
-            // Standard rendering
-            let rich_text = self.text_style.to_richtext(ui, &text);
+            let rich_text = self.text_style.to_richtext(ui, text);
             ui.label(rich_text);
         }
     }

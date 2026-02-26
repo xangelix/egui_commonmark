@@ -17,14 +17,39 @@ const DEFAULT_THEME_LIGHT: &str = "base16-ocean.light";
 #[cfg(feature = "better_syntax_highlighting")]
 const DEFAULT_THEME_DARK: &str = "base16-ocean.dark";
 
+/// A type alias for the custom formatting callback.
+pub type CustomFormatCallback = dyn Fn(&mut egui::Ui, &str);
+
+/// Holds the compiled regular expressions for custom formatting.
+/// This is expensive to create and should be instantiated once in your App state.
+pub struct CustomFormatMatcher {
+    pub set: regex::RegexSet,
+    pub regexes: Vec<regex::Regex>,
+}
+
+impl CustomFormatMatcher {
+    /// Compiles a list of regex patterns into an optimized pre-filter and
+    /// individual extraction regexes.
+    pub fn new(patterns: &[&str]) -> Result<Self, regex::Error> {
+        let set = regex::RegexSet::new(patterns)?;
+        let regexes = patterns
+            .iter()
+            .map(|p| regex::Regex::new(p))
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(Self { set, regexes })
+    }
+}
+
 pub struct CustomFormat<'f> {
     pub regex: &'f regex::Regex,
     pub callback: &'f dyn Fn(&mut egui::Ui, &str),
 }
 
+/// Pairs your pre-compiled matcher with the callbacks for this frame.
 pub struct CustomFormatGroup<'f> {
-    pub set: &'f regex::RegexSet,
-    pub rules: &'f [CustomFormat<'f>],
+    pub matcher: &'f CustomFormatMatcher,
+    pub callbacks: &'f [&'f CustomFormatCallback],
 }
 
 pub struct CommonMarkOptions<'f> {

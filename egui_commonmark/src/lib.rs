@@ -79,7 +79,9 @@ mod parsers;
 pub use egui_commonmark_backend::RenderHtmlFn;
 pub use egui_commonmark_backend::RenderMathFn;
 pub use egui_commonmark_backend::alerts::{Alert, AlertBundle};
-pub use egui_commonmark_backend::misc::{CommonMarkCache, CustomFormat, CustomFormatGroup};
+pub use egui_commonmark_backend::misc::{
+    CommonMarkCache, CustomFormat, CustomFormatCallback, CustomFormatGroup, CustomFormatMatcher,
+};
 
 #[cfg(feature = "better_syntax_highlighting")]
 pub use egui_commonmark_backend::syntect;
