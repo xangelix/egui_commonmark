@@ -1,40 +1,45 @@
-//! Make sure to run this example from the repo directory and not the example
-//! directory.
-//!
-//! Run this example with:
-//! `cargo r --example custom_format --features better_syntax_highlighting`
-//! Add `light` or `dark` to the end of the command to specify theme.
-
 use eframe::egui;
 use egui_commonmark::*;
-use regex::Regex;
+use regex::{Regex, RegexSet};
 
 struct App {
     cache: CommonMarkCache,
+    format_set: RegexSet,
     ip_regex: Regex,
+    issue_regex: Regex,
 }
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
-                // Define the formatting rules for this frame
-                let formats = [CustomFormat {
-                    // Regex::clone() is cheap (it just bumps an Arc internally)
-                    regex: self.ip_regex.clone(),
-                    callback: &|ui, match_str| {
-                        // Render a clickable button inline with the text
-                        let btn = ui
-                            .button(format!("📋 {match_str}"))
-                            .on_hover_text("Click to copy IP address");
-
-                        if btn.clicked() {
-                            ui.ctx().copy_text(match_str.to_string());
-                        }
+                // Construct the rules. Order MATTERS here.
+                // Index 0 must be the IP regex, Index 1 must be the Issue regex.
+                let formats = [
+                    CustomFormat {
+                        regex: &self.ip_regex,
+                        callback: &|ui, match_str| {
+                            if ui.button(format!("📋 {match_str}")).clicked() {
+                                ui.ctx().copy_text(match_str.to_string());
+                            }
+                        },
                     },
-                }];
+                    CustomFormat {
+                        regex: &self.issue_regex,
+                        callback: &|ui, match_str| {
+                            if ui.link(match_str).clicked() {
+                                println!("Navigating to {match_str}...");
+                            }
+                        },
+                    },
+                ];
 
-                CommonMarkViewer::new().custom_formats(&formats).show(
+                let group = CustomFormatGroup {
+                    set: &self.format_set,
+                    rules: &formats,
+                };
+
+                CommonMarkViewer::new().custom_formats(group).show(
                     ui,
                     &mut self.cache,
                     EXAMPLE_TEXT,
@@ -45,29 +50,23 @@ impl eframe::App for App {
 }
 
 fn main() -> eframe::Result {
-    let mut args = std::env::args();
-    args.next();
-
     eframe::run_native(
-        "Custom Regex Formatting Viewer",
+        "RegexSet Formatting Viewer",
         eframe::NativeOptions::default(),
-        Box::new(move |cc| {
-            if let Some(theme) = args.next() {
-                if theme == "light" {
-                    cc.egui_ctx.set_theme(egui::Theme::Light);
-                } else if theme == "dark" {
-                    cc.egui_ctx.set_theme(egui::Theme::Dark);
-                }
-            }
-
-            cc.egui_ctx.style_mut(|style| {
-                style.url_in_tooltip = true;
-            });
+        Box::new(move |_cc| {
+            // 1. Define patterns
+            let patterns = [
+                r"\b\d{1,3}(?:\.\d{1,3}){3}\b", // Index 0: IP address
+                r"#\d+",                        // Index 1: Issue number
+            ];
 
             Ok(Box::new(App {
                 cache: CommonMarkCache::default(),
-                // Compile the regex once on startup
-                ip_regex: Regex::new(r"\b\d{1,3}(?:\.\d{1,3}){3}\b").unwrap(),
+                // 2. Compile Set
+                format_set: RegexSet::new(patterns).unwrap(),
+                // 3. Compile individual Regexes mapping to the exact same indices
+                ip_regex: Regex::new(patterns[0]).unwrap(),
+                issue_regex: Regex::new(patterns[1]).unwrap(),
             }))
         }),
     )

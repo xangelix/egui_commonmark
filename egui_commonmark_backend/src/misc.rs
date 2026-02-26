@@ -18,8 +18,13 @@ const DEFAULT_THEME_LIGHT: &str = "base16-ocean.light";
 const DEFAULT_THEME_DARK: &str = "base16-ocean.dark";
 
 pub struct CustomFormat<'f> {
-    pub regex: regex::Regex,
+    pub regex: &'f regex::Regex,
     pub callback: &'f dyn Fn(&mut egui::Ui, &str),
+}
+
+pub struct CustomFormatGroup<'f> {
+    pub set: &'f regex::RegexSet,
+    pub rules: &'f [CustomFormat<'f>],
 }
 
 pub struct CommonMarkOptions<'f> {
@@ -39,7 +44,7 @@ pub struct CommonMarkOptions<'f> {
     pub math_fn: Option<&'f crate::RenderMathFn>,
     pub html_fn: Option<&'f crate::RenderHtmlFn>,
 
-    pub custom_formats: Option<&'f [CustomFormat<'f>]>,
+    pub custom_formats: Option<CustomFormatGroup<'f>>,
 }
 
 impl std::fmt::Debug for CommonMarkOptions<'_> {

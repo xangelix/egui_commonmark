@@ -20,7 +20,9 @@ pub use {
     alerts::{Alert, AlertBundle, alert_ui},
     // Pretty much every single element in this module is used by the proc macros
     elements::*,
-    misc::{CodeBlock, CommonMarkOptions, Image, Link, prepare_show, CustomFormat},
+    misc::{
+        CodeBlock, CommonMarkOptions, CustomFormat, CustomFormatGroup, Image, Link, prepare_show,
+    },
 };
 
 // The only struct that is allowed to use directly. (If one does not need egui_commonmark)
