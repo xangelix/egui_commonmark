@@ -32,7 +32,7 @@ egui = { workspace = true }
 document-features = { workspace = true, optional = true }
 
 # Dependency resolution is hard...
-proc-macro-crate = "3.1"
+proc-macro-crate = "3.5"
 
 [dev-dependencies]
 trybuild = "1.0"

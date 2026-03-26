@@ -8,8 +8,8 @@ struct App {
 }
 
 impl eframe::App for App {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        egui::CentralPanel::default().show(ctx, |ui| {
+    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        egui::CentralPanel::default().show_inside(ui, |ui| {
             let callbacks: [&CustomFormatCallback; 2] = [
                 &|ui, match_str| {
                     if ui.button(format!("📋 {match_str}")).clicked() {
