@@ -25,7 +25,7 @@ impl App {
         egui::Panel::left("left_documentation_panel")
             .resizable(false)
             .default_size(100.0)
-            .show_inside(ui, |ui| {
+            .show(ui, |ui| {
                 let style = ui.style_mut();
                 style.visuals.widgets.active.bg_stroke = egui::Stroke::NONE;
                 style.visuals.widgets.hovered.bg_stroke = egui::Stroke::NONE;
@@ -53,6 +53,7 @@ impl App {
                     CommonMarkViewer::new()
                         .default_width(Some(200))
                         .max_image_width(Some(512))
+                        .enable_scroll_to_heading(true)
                         .show(
                             ui,
                             &mut self.cache,
@@ -65,7 +66,7 @@ impl App {
 
 impl eframe::App for App {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
-        egui::CentralPanel::default().show_inside(ui, |ui| {
+        egui::CentralPanel::default().show(ui, |ui| {
             self.sidepanel(ui);
             self.content_panel(ui);
         });
@@ -103,6 +104,10 @@ fn main() -> eframe::Result {
                     Page {
                         name: "Headers".to_owned(),
                         content: include_str!("markdown/headers.md").to_owned(),
+                    },
+                    Page {
+                        name: "Scroll to heading".to_owned(),
+                        content: include_str!("markdown/scroll_to_heading.md").to_owned(),
                     },
                     Page {
                         name: "Lists".to_owned(),
